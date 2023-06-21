@@ -28,12 +28,11 @@ const getContactById = async (contactId) => {
 // Removes the contact with the specified ID
 const removeContact = async (contactId) => {
   const contacts = await listContacts();
-  const idx = contactId.findIndex((item) => item.id === contactId);
+  const idx = contacts.findIndex((item) => item.id === contactId);
   if (idx === -1) {
     throw new Error("Contact not found");
   }
   const [contact] = contacts.splice(idx, 1);
-
   try {
     await fs.writeFile(contactsPath, JSON.stringify(contacts));
   } catch (error) {
