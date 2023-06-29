@@ -24,6 +24,10 @@ const contactSchema = new mongoose.Schema(
       default: false,
       required: [true, "Please set favorite status"],
     },
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+    },
   },
   { collection: "contacts", versionKey: false }
 );

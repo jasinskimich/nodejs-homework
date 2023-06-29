@@ -3,6 +3,8 @@ const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const usersRouter = require("./routes/api/users");
+const authMiddleware = require("./middlewares/authMiddleware.js");
 
 const contactsRouter = require("./routes/api/contacts");
 
@@ -36,7 +38,8 @@ app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/contacts", contactsRouter);
+app.use("/api/contacts", authMiddleware, contactsRouter);
+app.use("/api/users", usersRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });
