@@ -1,11 +1,13 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
+// const gravatar = require("gravatar");
+const fs = require("fs");
+const path = require("path");
 const {
   validateRegistration,
   validateLogin,
 } = require("../validators/usersValidator");
-
+const usersService = require("../services/usersService");
 const User = require("../models/userModel");
 
 const usersController = {
@@ -39,6 +41,7 @@ const usersController = {
       next(error);
     }
   },
+
 
   login: async (req, res, next) => {
     try {
@@ -87,6 +90,32 @@ const usersController = {
         email: user.email,
         subscription: user.subscription,
       });
+    } catch (error) {
+      next(error);
+    }
+  },
+  updateAvatar: async (req, res, next) => {
+    try {
+      const { user } = req;
+      const avatar = req.file;
+
+      if (!user) {
+        return res.status(401).json({ message: "Not authorized" });
+      }
+
+      const avatarFilename = `${user._id}${path.extname(avatar.originalname)}`;
+      const avatarDirectory = "./public/avatars";
+
+      if (!fs.existsSync(avatarDirectory)) {
+        fs.mkdirSync(avatarDirectory, { recursive: true });
+      }
+
+      await usersService.processAvatar(avatar, avatarFilename);
+
+      user.avatarURL = `/avatars/${avatarFilename}`;
+      await user.save();
+
+      res.json({ avatarURL: user.avatarURL });
     } catch (error) {
       next(error);
     }
