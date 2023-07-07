@@ -1,8 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-// const gravatar = require("gravatar");
-const fs = require("fs");
-const path = require("path");
+const gravatar = require("gravatar");
 const {
   validateRegistration,
   validateLogin,
@@ -10,6 +8,8 @@ const {
 } = require("../validators/usersValidator");
 const usersService = require("../services/usersService");
 const User = require("../models/userModel");
+const fs = require("fs");
+const path = require("path");
 
 const { v4: uuidv4 } = require("uuid");
 
@@ -40,6 +40,11 @@ const usersController = {
         email,
         password: hashedPassword,
         subscription: "starter",
+        avatarURL: gravatar.url(email, {
+          protocol: "http",
+          s: "250",
+          r: "pg",
+        }),
         verify: false,
         verificationToken: generateVerificationToken(),
       };
@@ -70,6 +75,9 @@ const usersController = {
       if (!user) {
         return res.status(401).json({ message: "Email or password is wrong" });
       }
+      if (!user.verify) {
+        return res.status(401).json({message: "Please verify your email first"})
+      }
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
@@ -86,17 +94,15 @@ const usersController = {
       next(error);
     }
   },
-
   logout: async (req, res, next) => {
     try {
       req.user.token = null;
       await req.user.save();
-      res.status(204).json({ message: "No Content" });
+      res.status(204).json();
     } catch (error) {
       next(error);
     }
   },
-
   getCurrentUser: async (req, res, next) => {
     try {
       const user = req.user;
